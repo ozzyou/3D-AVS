@@ -1,0 +1,14 @@
+eche__**
+**build**
+**egg-info**
+*.pyc
+venv/
+*.idea/
+*.so
+*.pth
+*.pkl
+*.zip
+*.bin
+data/*
+ckpt/*
+tmp/*

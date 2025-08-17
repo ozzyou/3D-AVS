@@ -1,0 +1,86 @@
+DATA:
+  data_root: data/nuscenes/nuscenes_3d
+  data_root_2d_fused_feature: data/nuscenes/nuscenes_multiview_openseg
+  feature_2d_extractor: openseg
+  classes: 16
+  aug: False
+  voxel_size: 0.05
+  input_color: False
+  use_shm: False
+  
+DISTILL:
+  arch_3d: MinkUNet18A
+  ignore_label: 255
+  train_gpu: [0,1,2,3]
+  workers: 16  # data loader workers
+  batch_size: 16  # batch size for training
+  batch_size_val: 4  # batch size for validation during training, memory and speed tradeoff
+  base_lr: 0.0001
+  loss_type: cosine # l1 | cosine
+  loop: 1
+  epochs: 100
+  start_epoch: 0
+  power: 0.9
+  momentum: 0.9
+  manual_seed: 3407
+  print_freq: 10
+  save_freq: 1
+  save_path:
+  resume:
+  evaluate: True  # evaluate on validation set, extra gpu memory needed and small batch_size_val is recommend
+  eval_freq: 1
+
+TEST:
+  split: val  # split in [train, val]
+  prompt_eng: True
+  mark_no_feature_to_unknown: True
+  feature_type: 'ensemble' # 'distill' | 'fusion' | 'ensemble'
+  save_feature_as_numpy: False
+  map_nuscenes_details: False
+  vis_input: False
+  vis_pred: False
+  vis_gt: False
+  eval_tsc: True
+  eval_iou: True
+  test_workers: 16
+  test_gpu: [0]
+  test_batch_size: 1
+  test_repeats: 1  # it's only valid if eval_iou is True. For visualization, only last results are saved.
+  model_path: 'https://cvg-data.inf.ethz.ch/openscene/models/nuscenes_openseg.pth.tar'
+  save_folder: './visualization_val_autovoc'
+  # AUTOVOC Configs
+  voc_src: "merged"
+#  autovoc_path_img: 'data/nuscenes/autovoc3d/nuscenes_img_1pass_llama3_70B_nuscenes_31_vocabulary.json'
+  autovoc_path_pt: 'data/nuscenes/autovoc3d/clipcap_output_epoch20_llama3_70B_nuscenes_31_vocabulary.json'
+#  autovoc_path_merged: 'data/nuscenes/autovoc3d/vocabulary.json'
+  autovoc_path_img: "data/nuscenes/autovoc3d/blip3/blip3_token2voc.json"
+  autovoc_path_merged: 'data/nuscenes/autovoc3d/blip3/merged_vocabulary_blip3.json'
+
+  # For autovoc_labelset, there are a few options:
+  # * nuscenes_16: 16 categories, not implemented yet
+  # * nuscenes_details: 43 categories, not implemented yet
+  # * (aborted) nuscenes_16_plus_autovoc: 16 categories + autovoc (variable length)
+  # * nuscenes_details_plus_autovoc: 43 categories + autovoc (variable length)
+  # By default, we add one more 'unlabeled' category to the end of the label set.
+  autovoc_labelset: 'nuscenes_details_plus_autovoc'
+
+  # LAVE mapping
+#  lave_mapping_path_img: 'data/nuscenes/autovoc2d/1_pass_nuscenes/av_to_voc.json'
+#  lave_mapping_path_pt: 'data/nuscenes/clipcap/clipcap_output_epoch20_nuscenes_31_av_to_voc.json'
+#  lave_mapping_path: "data/nuscenes/autovoc3d/av_to_voc_43.json"
+#  lave_mapping_path: "data/nuscenes/autovoc3d/av_to_voc.json"
+#  lave_mapping_path: "data/nuscenes/autovoc3d/blip3/av_to_voc.json"
+  lave_mapping_path: "data/nuscenes/autovoc3d/blip3/av_to_voc_llama7B.json"
+#  lave_mapping_path: "data/nuscenes/autovoc3d/blip3/av_to_voc_sbert.json"
+#  lave_mapping_path:
+  delete_words_mapping_to_void: False
+
+  # Include pre-defined categories during inference
+  include_predefined_categories: False
+
+Distributed:
+  dist_url: tcp://127.0.0.1:6787
+  dist_backend: 'nccl'
+  multiprocessing_distributed: True
+  world_size: 1
+  rank: 0
